@@ -1,0 +1,57 @@
+
+###
+# @name accessToken
+POST https://login.microsoftonline.com/{{tenant_id}}/oauth2/v2.0/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+&client_id={{client_id}}
+&client_secret={{client_secret}}
+&scope=https://graph.microsoft.com/.default
+
+
+###
+# @name userId
+@authToken = {{accessToken.response.body.$.access_token}}
+GET https://graph.microsoft.com/v1.0/users
+Authorization: Bearer {{authToken}}
+
+
+###
+@authToken = {{accessToken.response.body.$.access_token}}
+@userId = {{userId.response.body.value[0].id}}
+PATCH https://graph.microsoft.com/v1.0/users/{{userId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "givenName": "John Doe"
+}
+
+
+### IMDS (Instance Metadata Service): Access Token (from Azure VM) 
+GET http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://storage.azure.com/ HTTP/1.1 
+Metadata: true
+
+
+### Access token with scope for custom api (products)
+# @name accessToken
+POST https://login.microsoftonline.com/{{tenant_id}}/oauth2/v2.0/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+&client_id={{client_id}}
+&client_secret={{client_secret}}
+&scope={{api_scope}}
+
+
+### Get products from custom api with token
+@authToken = {{accessToken.response.body.$.access_token}}
+GET brentg-productapi.azurewebsites.net/api/product
+Authorization: Bearer {{authToken}}
+
+
+###
+@authToken = {{accessToken.response.body.$.access_token}}
+GET https://localhost:7227/api/Products
+Authorization: Bearer {{authToken}}
